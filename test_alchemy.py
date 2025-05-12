@@ -29,8 +29,8 @@ if __name__ == '__main__':
     class Empregado_Projeto(Base):
         __tablename__ = "Empregado_Projeto"
         __table_args__ = {"schema": 'mytest'}
-        empregado_id: Mapped[int] = mapped_column(ForeignKey("mytest.Empregado.id"), primary_key=True)
-        projeto_id: Mapped[int] = mapped_column(ForeignKey("mytest.Projeto.id"), primary_key=True)
+        empregado_id: Mapped[int] = mapped_column(ForeignKey("mytest.Empregado.id"), primary_key=True) # mytest.Empregado.id (schema.table.column)
+        projeto_id: Mapped[int] = mapped_column(ForeignKey("mytest.Projeto.id"), primary_key=True) # mytest.Projeto.id (schema.table.column)
         obsevacao: Mapped[Optional[str]]
         projetos: Mapped["Projeto"] = relationship()
     
