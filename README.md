@@ -30,6 +30,16 @@ Before deploying this setup, you need to configure the following values in the [
 - PGADMIN_MAIL
 - PGADMIN_PW
 
+Example of .env
+```
+POSTGRES_USER=User
+POSTGRES_PW=123
+POSTGRES_DB=postgres
+PGADMIN_MAIL=your@email.com
+PGADMIN_PW=123
+```
+
+
 ## Deploy with docker compose
 When deploying this setup, the pgAdmin web interface will be available at port 5050 (e.g. http://localhost:5050).  
 
