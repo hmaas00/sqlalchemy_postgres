@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text, select
 from sqlalchemy.engine import URL
 from sqlalchemy import Integer, String, ForeignKey
 from sqlalchemy.orm import DeclarativeBase
@@ -9,6 +9,8 @@ from sqlalchemy.orm import Session
 from dotenv import dotenv_values
 
 from typing import Optional, List
+
+
 
 
 if __name__ == '__main__':
@@ -55,14 +57,26 @@ if __name__ == '__main__':
     engine = create_engine(url)
     Base.metadata.create_all(engine)
 
+
+    def gen_empregado(emp_nome, proj_nome, proj_obs):
+        empregado_projeto = Empregado_Projeto()
+        emp = Empregado(name=emp_nome)
+        projeto_a = Projeto(name=proj_nome)
+        empregado_projeto.empregado = emp
+        empregado_projeto.projeto = projeto_a
+        empregado_projeto.obsevacao = proj_obs
+        return emp
+
+
     # criar um objeto na base
     with Session(engine) as session:
-        empregado_projeto = Empregado_Projeto()
-        john = Empregado(name="Smith")
-        projeto_a = Projeto(name='projeto abc')
-        empregado_projeto.empregado = john
-        empregado_projeto.projeto = projeto_a
-        empregado_projeto.obsevacao = "projeto bom"
-        session.add(john)
-        session.commit()
+        # emp = gen_empregado('jose', 'alpha', 'secreto')
+        # session.add(emp)
+        res = session.execute(text('SELECT id, nome FROM mytest."OutAlchemy";'))
+        for r in res:
+            print(f'\n{r}')
+
+        #stmt = select(User).where(User.name.in_(["spongebob", "sandy"]))
+
+        # session.commit()
     pass
