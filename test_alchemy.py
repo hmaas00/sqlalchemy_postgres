@@ -6,12 +6,11 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column, relationship
 from sqlalchemy.orm import Session
 
-from dotenv import dotenv_values
+from dotenv import dotenv_values, set_key
 
 from typing import Optional, List
 
 CONFIG = dotenv_values(".env")  # CONFIG = {"USER": "foo", "EMAIL": "foo@example.org"}
-
 
     # declarative base class
 class Base(DeclarativeBase):
@@ -53,15 +52,20 @@ def init_engine():
     
     engine = create_engine(url)
 
+
+
     return engine
 
 def gen_schema():
 
-    engine = init_engine(CONFIG)
+    engine = init_engine()
 
     # criacao da base
     
     Base.metadata.create_all(engine)
+
+    set_key('.env', 'FIRST_EXECUTION', 'nao')
+
 
 def gen_empregado(emp_nome, proj_nome, proj_obs):
         empregado_projeto = Empregado_Projeto()
@@ -74,12 +78,15 @@ def gen_empregado(emp_nome, proj_nome, proj_obs):
 
 if __name__ == '__main__':
 
+    if CONFIG['FIRST_EXECUTION'] == 'sim':
+        gen_schema()
+
     engine = init_engine()
 
     # criar um objeto na base
     with Session(engine) as session:
-        # emp = gen_empregado('jose', 'alpha', 'secreto')
-        # session.add(emp)
+        emp = gen_empregado('jose', 'alpha', 'secreto')
+        session.add(emp)
         # res = session.query(Projeto).filter(Projeto.name=='projeto A')
         res = session.query(Projeto)
         for r in res:
@@ -87,5 +94,5 @@ if __name__ == '__main__':
 
         #stmt = select(User).where(User.name.in_(["spongebob", "sandy"]))
 
-        # session.commit()
+        session.commit()
     pass
