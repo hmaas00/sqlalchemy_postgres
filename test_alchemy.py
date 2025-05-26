@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, text, select, BigInteger
+from sqlalchemy import create_engine, text, select, BigInteger, exists
 from sqlalchemy.engine import URL
 from sqlalchemy import Integer, String, ForeignKey
 from sqlalchemy.orm import DeclarativeBase
@@ -16,7 +16,7 @@ CONFIG = dotenv_values(".env")  # CONFIG = {"USER": "foo", "EMAIL": "foo@example
 class Base(DeclarativeBase):
     pass
 
-class Empregado_Projeto(Base):
+class EmpregadoProjeto(Base):
     __tablename__ = "Empregado_Projeto"
     __table_args__ = {"schema": CONFIG['POSTGRES_SCHEMA']}
     empregado_id: Mapped[int] = mapped_column(ForeignKey(f"{CONFIG['POSTGRES_SCHEMA']}.Empregado.id"), primary_key=True) # {CONFIG['POSTGRES_SCHEMA']}.Empregado.id (schema.table.column)
@@ -31,14 +31,14 @@ class Empregado(Base):
     __table_args__ = {"schema": CONFIG['POSTGRES_SCHEMA']}
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(30))
-    projetos: Mapped[List["Empregado_Projeto"]] = relationship(back_populates="empregado")
+    projetos: Mapped[List["EmpregadoProjeto"]] = relationship(back_populates="empregado")
 
 class Projeto(Base):
     __tablename__ = "Projeto"
     __table_args__ = {"schema": CONFIG['POSTGRES_SCHEMA']}
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     name: Mapped[str] = mapped_column(String(30))
-    empregados: Mapped[List["Empregado_Projeto"]] = relationship(back_populates="projeto")
+    empregados: Mapped[List["EmpregadoProjeto"]] = relationship(back_populates="projeto")
 
 def init_engine():
     url = URL.create(
@@ -68,7 +68,7 @@ def gen_schema():
 
 
 def gen_empregado(emp_nome, proj_nome, proj_obs):
-        empregado_projeto = Empregado_Projeto()
+        empregado_projeto = EmpregadoProjeto()
         emp = Empregado(name=emp_nome)
         projeto_a = Projeto(name=proj_nome)
         empregado_projeto.empregado = emp
@@ -89,10 +89,15 @@ if __name__ == '__main__':
         session.add(emp)
         # res = session.query(Projeto).filter(Projeto.name=='projeto A')
         res = session.query(Projeto)
+        res2= session.query(exists().where(Projeto.name=='alpha'))
+        print(res.statement)
+        print(res2.statement)
         for r in res:
             print(f'\n{r.id} - {r.name}')
+        
+        print(res2.scalar())
 
-        #stmt = select(User).where(User.name.in_(["spongebob", "sandy"]))
+        print('existe') if res2.scalar() else print('nao existe!!!!')        #stmt = select(User).where(User.name.in_(["spongebob", "sandy"]))
 
         session.commit()
     pass
