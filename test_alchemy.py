@@ -1,9 +1,8 @@
 from sqlalchemy import create_engine, text, select, BigInteger, exists
 from sqlalchemy.engine import URL
-from sqlalchemy import Integer, String, ForeignKey
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column, relationship
+from sqlalchemy import Column, Integer, String, ForeignKey, BigInteger # Added BigInteger here as it's used in a Column
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship # Removed Mapped and mapped_column
 from sqlalchemy.orm import Session
 
 from dotenv import dotenv_values, set_key
@@ -13,32 +12,31 @@ from typing import Optional, List
 CONFIG = dotenv_values(".env")  # CONFIG = {"USER": "foo", "EMAIL": "foo@example.org"}
 
     # declarative base class
-class Base(DeclarativeBase):
-    pass
+Base = declarative_base() # Changed Base declaration
 
 class EmpregadoProjeto(Base):
     __tablename__ = "Empregado_Projeto"
     __table_args__ = {"schema": CONFIG['POSTGRES_SCHEMA']}
-    empregado_id: Mapped[int] = mapped_column(ForeignKey(f"{CONFIG['POSTGRES_SCHEMA']}.Empregado.id"), primary_key=True) # {CONFIG['POSTGRES_SCHEMA']}.Empregado.id (schema.table.column)
-    projeto_id: Mapped[int] = mapped_column(BigInteger, ForeignKey(f"{CONFIG['POSTGRES_SCHEMA']}.Projeto.id"), primary_key=True) # {CONFIG['POSTGRES_SCHEMA']}.Projeto.id (schema.table.column)
-    obsevacao: Mapped[Optional[str]]
-    projeto: Mapped["Projeto"] = relationship(back_populates="empregados")
-    empregado: Mapped["Empregado"] = relationship(back_populates="projetos")
+    empregado_id = Column(Integer, ForeignKey(f"{CONFIG['POSTGRES_SCHEMA']}.Empregado.id"), primary_key=True) # {CONFIG['POSTGRES_SCHEMA']}.Empregado.id (schema.table.column)
+    projeto_id = Column(BigInteger, ForeignKey(f"{CONFIG['POSTGRES_SCHEMA']}.Projeto.id"), primary_key=True) # {CONFIG['POSTGRES_SCHEMA']}.Projeto.id (schema.table.column)
+    obsevacao = Column(String) # Assuming String for Optional[str], adjust if different type is expected
+    projeto = relationship("Projeto", back_populates="empregados")
+    empregado = relationship("Empregado", back_populates="projetos")
 
 # an example mapping using the base
 class Empregado(Base):
     __tablename__ = "Empregado"
     __table_args__ = {"schema": CONFIG['POSTGRES_SCHEMA']}
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(30))
-    projetos: Mapped[List["EmpregadoProjeto"]] = relationship(back_populates="empregado")
+    id = Column(Integer, primary_key=True)
+    name = Column(String(30))
+    projetos = relationship("EmpregadoProjeto", back_populates="empregado")
 
 class Projeto(Base):
     __tablename__ = "Projeto"
     __table_args__ = {"schema": CONFIG['POSTGRES_SCHEMA']}
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    name: Mapped[str] = mapped_column(String(30))
-    empregados: Mapped[List["EmpregadoProjeto"]] = relationship(back_populates="projeto")
+    id = Column(BigInteger, primary_key=True)
+    name = Column(String(30))
+    empregados = relationship("EmpregadoProjeto", back_populates="projeto")
 
 def init_engine():
     url = URL.create(
