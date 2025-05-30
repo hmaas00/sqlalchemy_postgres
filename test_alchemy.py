@@ -8,6 +8,8 @@ from sqlalchemy.orm import Session
 
 from dotenv import dotenv_values, set_key
 
+from batch_selector import BatchSelector
+
 from typing import Optional, List
 
 CONFIG = dotenv_values(".env")  # CONFIG = {"USER": "foo", "EMAIL": "foo@example.org"}
@@ -100,4 +102,34 @@ if __name__ == '__main__':
         print('existe') if res2.scalar() else print('nao existe!!!!')        #stmt = select(User).where(User.name.in_(["spongebob", "sandy"]))
 
         session.commit()
+
+        print("\n--- BatchSelector Demonstration ---")
+        # Add a few more employees for a better batching demonstration
+        additional_employees = [
+            Empregado(name='Maria'),
+            Empregado(name='Joao'),
+            Empregado(name='Ana'),
+            Empregado(name='Carlos'),
+            Empregado(name='Beatriz')
+        ]
+        session.add_all(additional_employees)
+        session.commit()
+
+        print(f"Total Empregados in DB: {session.query(Empregado).count()}")
+
+        batch_size = 2
+        empregado_selector = BatchSelector(session, Empregado, batch_size)
+
+        batch_number = 1
+        for batch in empregado_selector:
+            print(f"\nProcessing Batch {batch_number}:")
+            if not batch: # Should not happen with current BatchSelector logic, but good check
+                print("  Empty batch.")
+                continue
+            for empregado_item in batch:
+                print(f"  Empregado ID: {empregado_item.id}, Name: {empregado_item.name}")
+            batch_number += 1
+        
+        print("\n--- End of BatchSelector Demonstration ---")
+
     pass
